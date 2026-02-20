@@ -1,62 +1,55 @@
+# Real-Time Messaging Engine
 
-Full-Stack Real-Time Messaging Engine   
+## Introduction
 
----
+This is a simple real-time chat application.
 
-## Project Overview  
+It allows users to:
+- Send and receive messages instantly
+- See who is online
+- See typing indicators
+- Continue chatting even if the internet goes down
 
-A high-performance, browser-based real-time messaging engine designed to deliver seamless communication—even in unreliable network conditions.  
+If the connection is lost:
+- Messages are saved in the browser
+- The app still works
+- Messages automatically send when the internet comes back
 
-Unlike traditional web chat systems that fail during connectivity drops, It follows a Local-First synchronization strategy. Messages created while offline are safely stored in the browser and automatically reconciled with the backend once connectivity is restored.  
-
----
-
-## Key Features  
-
-### 1. Real-Time Message 
-
-#### Bi-Directional Communication  
-- Powered by Socket.io  
-- Instant, low-latency message delivery  
-- No page refresh required  
-
-#### Presence Management  
-- Real-time tracking of:
-  - Online / Offline user states  
-  - "User is typing..." indicators  
-- Efficient event broadcasting architecture  
-
-
-
-### 2. Synchronization & Persistence 
-
-#### Offline-First Workflow  
-- Messages created during network downtime are:
-  - Stored in IndexedDB or LocalStorage  
-  - Marked with a PENDING status  
-- UI remains fully responsive  
-
+The main goal of this project is to build a **fast, reliable, and offline-friendly chat system**.
 
 ---
 
-## Technical Stack  
+##  Tech Used
 
-### Backend  
-- Node.js  
-- TypeScript  
-- Express.js  
+- Backend: Node.js, Express, Socket.io
+- Frontend: React.js
+- Database: PostgreSQL or MySQL
+- ORM: Prisma
+- Offline Storage: IndexedDB
 
-### Database  
-- PostgreSQL or MySQL  
-- Prisma ORM  
+---
 
-### Real-Time 
-- Socket.io  
+## Setup (Step-by-Step)
 
-### Frontend  
-- React.js 
+### Clone the Project
 
-### Offline Storage  
-- IndexedDB (Primary)   
+```bash
+git clone https://github.com/Shriti507/ChatWeb.git
+cd ChatWeb
+```
 
+### Setup Backend
 
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+### Setup Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
