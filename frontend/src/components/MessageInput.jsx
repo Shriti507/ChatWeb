@@ -24,8 +24,6 @@ const MessageInput = ({ selectedChat, onMessageSent }) => {
             
             setMessage('');
 
-            // In a real app, this is where we would trigger the Socket.io/API call
-            // and update status to 'synced' upon success.
         }
     };
 

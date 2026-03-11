@@ -3,7 +3,7 @@ import React from 'react';
 const Sidebar = ({ onSelectChat, selectedChat }) => {
     
     const contacts = [
-        { id: 1, name: 'Shriti Negi', lastMessage: 'Hey, how are you?', time: '12:45 PM', status: 'online' },
+        { id: 1, name: 'John Doe', lastMessage: 'Hey, how are you?', time: '12:45 PM', status: 'online' },
         { id: 2, name: 'Project Group', lastMessage: 'Offline-first strategy is key.', time: '11:20 AM', status: 'away' },
         { id: 3, name: 'Tech Support', lastMessage: 'Your ticket is being processed.', time: 'Yesterday', status: 'offline' },
     ];
