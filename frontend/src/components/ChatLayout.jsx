@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
+import MessageListPanel from './MessageListPanel';
 import ChatArea from './ChatArea';
 import { getMessagesByConversation } from '../utils/db';
 
 const ChatLayout = () => {
-    const [selectedChat, setSelectedChat] = useState(null);
+    const [selectedChat, setSelectedChat] = useState({ id: 3, name: 'Edwin Johnson', lastMessage: 'Cool! Is there a coffee machine...', time: '9:01', status: 'online' });
     const [messages, setMessages] = useState([]);
 
     useEffect(() => {
@@ -31,7 +31,7 @@ const ChatLayout = () => {
             width: '100vw',
             background: 'var(--bg-primary)'
         }}>
-            <Sidebar onSelectChat={setSelectedChat} selectedChat={selectedChat} />
+            <MessageListPanel onSelectChat={setSelectedChat} selectedChat={selectedChat} />
             <ChatArea 
                 selectedChat={selectedChat} 
                 messages={messages} 

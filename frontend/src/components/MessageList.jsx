@@ -5,43 +5,63 @@ const MessageList = ({ messages }) => {
         <div style={{
             flex: 1,
             overflowY: 'auto',
-            padding: 'var(--spacing-lg)',
+            padding: '24px 32px',
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--spacing-md)'
+            gap: '24px'
         }}>
             {messages.map(msg => (
                 <div 
                     key={msg.id}
                     style={{
                         alignSelf: msg.self ? 'flex-end' : 'flex-start',
-                        maxWidth: '70%',
+                        maxWidth: '65%',
                         display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: msg.self ? 'flex-end' : 'flex-start'
+                        gap: '12px',
+                        alignItems: 'flex-end'
                     }}
                 >
+                    {!msg.self && (
+                        <div style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: '50%',
+                            background: '#e2e8f0',
+                            marginBottom: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            color: 'var(--text-secondary)'
+                        }}>
+                            EJ
+                        </div>
+                    )}
                     <div style={{
-                        padding: '12px 16px',
+                        padding: '12px 16px 20px 16px',
                         borderRadius: msg.self ? '16px 16px 0 16px' : '16px 16px 16px 0',
-                        background: msg.self ? 'var(--accent-primary)' : 'var(--bg-secondary)',
+                        background: msg.self ? 'var(--bubble-sent)' : 'var(--bubble-received)',
                         color: msg.self ? 'white' : 'var(--text-primary)',
                         fontSize: '0.9375rem',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                        border: msg.self ? 'none' : 'var(--glass-border)',
-                        position: 'relative'
+                        position: 'relative',
+                        lineHeight: 1.5,
+                        boxShadow: 'none'
                     }}>
                         {msg.text}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                        <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>
-                            {msg.time}
-                        </span>
-                        {msg.self && (
-                             <span style={{ fontSize: '0.75rem', opacity: 0.8, color: msg.status === 'synced' ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
-                                {msg.status === 'synced' ? '✓' : '🕒'}
-                             </span>
-                        )}
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '4px',
+                            right: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '0.65rem',
+                            color: msg.self ? 'rgba(255, 255, 255, 0.8)' : 'var(--text-secondary)'
+                        }}>
+                            <span>{msg.time}</span>
+                            {msg.self && <span>✓✓</span>}
+                        </div>
                     </div>
                 </div>
             ))}
