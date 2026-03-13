@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
 
 :root {
-  --bg-primary: #ffffff; /* Main app background */
-  --sidebar-bg: #1c1c1c; /* Dark sidebar */
+  --bg-primary: #ffffff; 
+  --sidebar-bg: #1c1c1c; 
   --panel-bg: #ffffff;
   --chat-bg: #ffffff;
-  --accent-primary: #fb6f92; /* Pink */
+  --accent-primary: #fb6f92; 
   --accent-secondary: #ffe4e6;
-  --text-primary: #1e293b; /* Dark text for white bg */
+  --text-primary: #1e293b; 
   --text-secondary: #64748b;
-  --text-inverse: #ffffff; /* White text for dark/pink bg */
+  --text-inverse: #ffffff;  
   
   --bubble-received: #f1f5f9;
   --bubble-sent: #fb6f92;
@@ -22,6 +22,18 @@
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
+}
+
+.dark {
+  --bg-primary: #0f172a;
+  --sidebar-bg: #1e293b;
+  --panel-bg: #1e293b;
+  --chat-bg: #0f172a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+  --bubble-received: #1e293b;
+  --accent-secondary: #312e81;
 }
 
 * {

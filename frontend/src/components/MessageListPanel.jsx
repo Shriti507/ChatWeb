@@ -123,7 +123,7 @@ const MessageListPanel = ({ onSelectChat, selectedChat }) => {
                                     height: '12px',
                                     borderRadius: '50%',
                                     background: '#22c55e',
-                                    border: '2px solid white'
+                                    border: '2px solid var(--panel-bg)'
                                 }}></div>
                             )}
                         </div>
