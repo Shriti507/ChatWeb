@@ -36,7 +36,7 @@ const ChatArea = ({ selectedChat, messages, onMessageSent }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: 'white',
+                background: 'var(--panel-bg)',
                 zIndex: 10
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -63,7 +63,7 @@ const ChatArea = ({ selectedChat, messages, onMessageSent }) => {
                                 height: 12,
                                 borderRadius: '50%',
                                 background: '#22c55e',
-                                border: '2px solid white'
+                                border: '2px solid var(--panel-bg)'
                             }}></div>
                         )}
                     </div>
@@ -76,7 +76,7 @@ const ChatArea = ({ selectedChat, messages, onMessageSent }) => {
                             <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>1-Bedroom Apartment, 45 m²</span>
                             <span style={{ 
                                 fontSize: '0.75rem', 
-                                background: '#f1f5f9', 
+                                background: 'var(--bubble-received)', 
                                 padding: '4px 8px', 
                                 borderRadius: '12px',
                                 color: 'var(--text-primary)',
@@ -105,7 +105,7 @@ const ChatArea = ({ selectedChat, messages, onMessageSent }) => {
                         height: 40,
                         borderRadius: '12px',
                         border: '1px solid var(--border-color)',
-                        background: '#f1f5f9',
+                        background: 'var(--bubble-received)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',

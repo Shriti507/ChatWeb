@@ -25,7 +25,7 @@ const MessageInput = ({ selectedChat, onMessageSent }) => {
     return (
         <footer style={{
             padding: '24px 32px',
-            background: 'white',
+            background: 'var(--panel-bg)',
             zIndex: 10
         }}>
             <form onSubmit={handleSend} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>

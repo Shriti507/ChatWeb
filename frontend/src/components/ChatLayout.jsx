@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Sidebar from './Sidebar';
 import MessageListPanel from './MessageListPanel';
 import ChatArea from './ChatArea';
 import { getMessagesByConversation } from '../utils/db';
@@ -9,7 +10,7 @@ const ChatLayout = () => {
 
     useEffect(() => {
         if (selectedChat) {
-            // Load messages from local storage when chat selection changes
+                
             const loadLocalMessages = async () => {
                 const localMsgs = await getMessagesByConversation(selectedChat.id);
                 setMessages(localMsgs);
@@ -31,6 +32,7 @@ const ChatLayout = () => {
             width: '100vw',
             background: 'var(--bg-primary)'
         }}>
+            <Sidebar />
             <MessageListPanel onSelectChat={setSelectedChat} selectedChat={selectedChat} />
             <ChatArea 
                 selectedChat={selectedChat} 

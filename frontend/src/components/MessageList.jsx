@@ -26,7 +26,7 @@ const MessageList = ({ messages }) => {
                             width: 36,
                             height: 36,
                             borderRadius: '50%',
-                            background: '#e2e8f0',
+                            background: 'var(--border-color)',
                             marginBottom: '4px',
                             display: 'flex',
                             alignItems: 'center',
