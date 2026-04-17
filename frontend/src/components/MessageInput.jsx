@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Paperclip, Mic, Send } from 'lucide-react';
 import { saveMessage } from '../utils/db';
+import { socket } from '../socket';
+
 
 const MessageInput = ({ selectedChat, onMessageSent }) => {
     const [message, setMessage] = useState('');
@@ -17,8 +19,13 @@ const MessageInput = ({ selectedChat, onMessageSent }) => {
                 status: 'pending' 
             };
             const id = await saveMessage(newMessage);
-            onMessageSent({ ...newMessage, id });
+            const messageWithId = { ...newMessage, id };
+            
+            socket.emit("send_message", messageWithId);
+            
+            onMessageSent(messageWithId);
             setMessage('');
+
         }
     };
 

@@ -107,7 +107,7 @@ const Sidebar = () => {
                 </div>
 
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
-                    <p style={{ marginBottom: '4px' }}>©2024 ChatWeb. All rights</p>
+                    <p style={{ marginBottom: '4px' }}>©2026 ChatWeb. All rights</p>
                     <p>reserved.</p>
                 </div>
                 
