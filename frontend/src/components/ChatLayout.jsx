@@ -3,6 +3,8 @@ import Sidebar from './Sidebar';
 import MessageListPanel from './MessageListPanel';
 import ChatArea from './ChatArea';
 import { getMessagesByConversation } from '../utils/db';
+import { socket } from '../socket';
+
 
 const ChatLayout = () => {
     const [selectedChat, setSelectedChat] = useState({ id: 3, name: 'Edwin Johnson', lastMessage: 'Cool! Is there a coffee machine...', time: '9:01', status: 'online' });
@@ -10,7 +12,6 @@ const ChatLayout = () => {
 
     useEffect(() => {
         if (selectedChat) {
-                
             const loadLocalMessages = async () => {
                 const localMsgs = await getMessagesByConversation(selectedChat.id);
                 setMessages(localMsgs);
@@ -20,6 +21,25 @@ const ChatLayout = () => {
             setMessages([]);
         }
     }, [selectedChat]);
+
+    useEffect(() => {
+        const handleReceiveMessage = (data) => {
+            console.log("Received via socket:", data);
+            if (selectedChat && data.conversationId === selectedChat.id) {
+                setMessages(prev => {
+                    if (prev.some(m => m.id === data.id)) return prev;
+                    return [...prev, data];
+                });
+            }
+        };
+
+        socket.on("receive_message", handleReceiveMessage);
+
+        return () => {
+            socket.off("receive_message", handleReceiveMessage);
+        };
+    }, [selectedChat]);
+
 
     const handleMessageSent = (newMessage) => {
         setMessages(prev => [...prev, newMessage]);
