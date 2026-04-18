@@ -4,12 +4,14 @@ import { saveMessage } from '../utils/db';
 import { socket } from '../socket';
 
 
-const MessageInput = ({ selectedChat, onMessageSent }) => {
+const MessageInput = ({ selectedChat, onMessageSent, onMessageStatusChange }) => {
     const [message, setMessage] = useState('');
+    const [isSending, setIsSending] = useState(false);
 
     const handleSend = async (e) => {
         e.preventDefault();
         if (message.trim() && selectedChat) {
+            setIsSending(true);
             const newMessage = {
                 conversationId: selectedChat.id,
                 sender: 'Me',
@@ -21,9 +23,20 @@ const MessageInput = ({ selectedChat, onMessageSent }) => {
             const id = await saveMessage(newMessage);
             const messageWithId = { ...newMessage, id };
             
-            socket.emit("send_message", messageWithId);
-            
             onMessageSent(messageWithId);
+            socket.emit("send_message", messageWithId, (ack) => {
+                if (ack?.ok) {
+                    onMessageStatusChange?.(id, 'sent');
+                } else {
+                    onMessageStatusChange?.(id, 'failed');
+                }
+                setIsSending(false);
+            });
+
+            // Defensive timeout when no ack returns (disconnect/race).
+            setTimeout(() => {
+                setIsSending(false);
+            }, 4000);
             setMessage('');
 
         }
@@ -63,7 +76,7 @@ const MessageInput = ({ selectedChat, onMessageSent }) => {
                         type="text" 
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Your message"
+                        placeholder={isSending ? "Sending..." : "Your message"}
                         style={{
                             flex: 1,
                             background: 'transparent',
@@ -90,6 +103,7 @@ const MessageInput = ({ selectedChat, onMessageSent }) => {
 
                 <button 
                     type="submit"
+                    disabled={isSending || !message.trim() || !selectedChat}
                     style={{
                         background: 'var(--accent-primary)',
                         color: 'white',
@@ -102,7 +116,8 @@ const MessageInput = ({ selectedChat, onMessageSent }) => {
                         justifyContent: 'center',
                         cursor: 'pointer',
                         transition: 'transform 0.1s active',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        opacity: isSending || !message.trim() || !selectedChat ? 0.65 : 1
                     }}
                     onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
                     onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}

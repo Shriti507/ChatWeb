@@ -1,6 +1,18 @@
 import React from 'react';
 
 const MessageList = ({ messages }) => {
+    const getStatusLabel = (status) => {
+        if (status === 'failed') return 'failed';
+        if (status === 'pending') return 'sending';
+        return 'sent';
+    };
+
+    const getStatusIcon = (status) => {
+        if (status === 'failed') return '!';
+        if (status === 'pending') return '...';
+        return '✓✓';
+    };
+
     return (
         <div style={{
             flex: 1,
@@ -60,7 +72,12 @@ const MessageList = ({ messages }) => {
                             color: msg.self ? 'rgba(255, 255, 255, 0.8)' : 'var(--text-secondary)'
                         }}>
                             <span>{msg.time}</span>
-                            {msg.self && <span>✓✓</span>}
+                            {msg.self && <span>{getStatusIcon(msg.status)}</span>}
+                            {msg.self && (
+                                <span style={{ textTransform: 'capitalize' }}>
+                                    {getStatusLabel(msg.status)}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>

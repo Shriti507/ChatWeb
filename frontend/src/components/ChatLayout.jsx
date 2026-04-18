@@ -11,6 +11,15 @@ const ChatLayout = () => {
     const [messages, setMessages] = useState([]);
 
     useEffect(() => {
+        if (!selectedChat?.id) return;
+        const roomId = String(selectedChat.id);
+        socket.emit("join_room", roomId);
+        return () => {
+            socket.emit("leave_room", roomId);
+        };
+    }, [selectedChat?.id]);
+
+    useEffect(() => {
         if (selectedChat) {
             const loadLocalMessages = async () => {
                 const localMsgs = await getMessagesByConversation(selectedChat.id);
@@ -45,6 +54,12 @@ const ChatLayout = () => {
         setMessages(prev => [...prev, newMessage]);
     };
 
+    const handleMessageStatusChange = (messageId, status) => {
+        setMessages(prev =>
+            prev.map(msg => (msg.id === messageId ? { ...msg, status } : msg))
+        );
+    };
+
     return (
         <div style={{
             display: 'flex',
@@ -58,6 +73,7 @@ const ChatLayout = () => {
                 selectedChat={selectedChat} 
                 messages={messages} 
                 onMessageSent={handleMessageSent} 
+                onMessageStatusChange={handleMessageStatusChange}
             />
         </div>
     );
