@@ -22,10 +22,31 @@ app.get('/', (req, res) => {
 io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
 
-    socket.on("send_message", (data) => {
+    socket.on("join_room", (roomId: string) => {
+        if (!roomId) return;
+        socket.join(String(roomId));
+        console.log(`Socket ${socket.id} joined room ${roomId}`);
+    });
+
+    socket.on("leave_room", (roomId: string) => {
+        if (!roomId) return;
+        socket.leave(String(roomId));
+        console.log(`Socket ${socket.id} left room ${roomId}`);
+    });
+
+    socket.on("send_message", (data, ack?: (response: { ok: boolean; status?: string; error?: string }) => void) => {
         console.log("Message received:", data);
-        // Broadcast the message to all clients including the sender
+        const roomId = data?.conversationId;
+        if (roomId) {
+            // Backward compatible: room-scoped by conversation when available.
+            io.to(String(roomId)).emit("receive_message", data);
+            ack?.({ ok: true, status: "sent" });
+            return;
+        }
+
+        // Legacy fallback for payloads without conversationId
         io.emit("receive_message", data);
+        ack?.({ ok: true, status: "sent" });
     });
 
     socket.on("disconnect", () => {

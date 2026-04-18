@@ -3,7 +3,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { Phone, MoreHorizontal } from 'lucide-react';
 
-const ChatArea = ({ selectedChat, messages, onMessageSent }) => {
+const ChatArea = ({ selectedChat, messages, onMessageSent, onMessageStatusChange }) => {
     if (!selectedChat) {
         return (
             <main style={{
@@ -118,7 +118,11 @@ const ChatArea = ({ selectedChat, messages, onMessageSent }) => {
             </header>
 
             <MessageList messages={messages} />
-            <MessageInput selectedChat={selectedChat} onMessageSent={onMessageSent} />
+            <MessageInput
+                selectedChat={selectedChat}
+                onMessageSent={onMessageSent}
+                onMessageStatusChange={onMessageStatusChange}
+            />
         </main>
     );
 };
