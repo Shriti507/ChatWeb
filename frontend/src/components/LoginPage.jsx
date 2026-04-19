@@ -1,191 +1,142 @@
-import * as React from 'react';
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
-const LoginPage = ({ onLogin }) => {
-    
-    const avatars = [
-        { id: 1, top: '10%', left: '15%', size: 90, img: 'https://i.pravatar.cc/150?u=1' },
-        { id: 2, top: '20%', left: '45%', size: 60, img: 'https://i.pravatar.cc/150?u=2' },
-        { id: 3, top: '10%', left: '75%', size: 40, img: 'https://i.pravatar.cc/150?u=3' },
-        { id: 4, top: '40%', left: '45%', size: 100, img: 'https://i.pravatar.cc/150?u=4' },
-        { id: 5, top: '55%', left: '15%', size: 50, img: 'https://i.pravatar.cc/150?u=5' },
-        { id: 6, top: '65%', left: '60%', size: 45, img: 'https://i.pravatar.cc/150?u=6' },
-        { id: 7, top: '45%', left: '80%', size: 65, img: 'https://i.pravatar.cc/150?u=7' },
-        { id: 8, top: '80%', left: '45%', size: 70, img: 'https://i.pravatar.cc/150?u=8' },
-    ];
+const API_URL = "http://localhost:3000";
 
-    return (
-        <div style={{
-            height: '100vh',
-            width: '100vw',
-            background: 'linear-gradient(135deg, #ffffff 0%, #fce7f3 100%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            padding: '40px 24px',
-            position: 'relative',
-            overflow: 'hidden',
-            fontFamily: "'Outfit', sans-serif"
-        }}>
-            
-            <div style={{
-                position: 'absolute',
-                top: '5%',
-                width: '100%',
-                height: '50%',
-                maxWidth: '500px'
-            }}>
-               
-                <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '300px',
-                    height: '300px',
-                    border: '1px dashed rgba(219, 39, 119, 0.2)',
-                    borderRadius: '50%'
-                }}></div>
-                <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '200px',
-                    height: '200px',
-                    border: '1px dashed rgba(219, 39, 119, 0.2)',
-                    borderRadius: '50%'
-                }}></div>
+const LoginPage = ({ onLogin, onGoToSignup }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-                {avatars.map(avatar => (
-                    <div key={avatar.id} style={{
-                        position: 'absolute',
-                        top: avatar.top,
-                        left: avatar.left,
-                        width: avatar.size,
-                        height: avatar.size,
-                        borderRadius: '50%',
-                        border: '3px solid white',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                        overflow: 'hidden',
-                        transition: 'transform 0.3s ease'
-                    }}>
-                        <img src={avatar.img} alt="user" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                ))}
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data?.token) {
+        setError(data?.error || "Login failed");
+        return;
+      }
+      onLogin(data.token);
+    } catch {
+      setError("Unable to login. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-              
-                <div style={{
-                    position: 'absolute',
-                    top: '70%',
-                    left: '25%',
-                    width: '32px',
-                    height: '32px',
-                    background: '#db2777',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    </svg>
-                </div>
-            </div>
-
-            
-            <div style={{
-                textAlign: 'center',
-                zIndex: 10,
-                width: '100%',
-                maxWidth: '400px'
-            }}>
-                <h1 style={{
-                    fontSize: '2.5rem',
-                    fontWeight: 800,
-                    color: '#1e293b',
-                    lineHeight: 1.1,
-                    marginBottom: '40px'
-                }}>
-                    Let's meeting new people around you
-                </h1>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                    <button 
-                        onClick={onLogin}
-                        style={{
-                            height: '64px',
-                            background: '#311b92',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '0 12px',
-                            cursor: 'pointer',
-                            fontSize: '1.1rem',
-                            fontWeight: 600,
-                            letterSpacing: '0.5px'
-                        }}
-                    >
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            background: 'white',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginRight: '24px'
-                        }}>
-                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#311b92" strokeWidth="2">
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                            </svg>
-                        </div>
-                        <span style={{ flex: 1, textAlign: 'left' }}>Login with Phone</span>
-                    </button>
-
-                    <button 
-                        onClick={onLogin}
-                        style={{
-                            height: '64px',
-                            background: '#fdf2f8',
-                            color: '#1e293b',
-                            border: 'none',
-                            borderRadius: '32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '0 12px',
-                            cursor: 'pointer',
-                            fontSize: '1.1rem',
-                            fontWeight: 600,
-                            letterSpacing: '0.5px'
-                        }}
-                    >
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            background: 'white',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginRight: '24px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                        }}>
-                            <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="google" style={{ width: '20px' }} />
-                        </div>
-                        <span style={{ flex: 1, textAlign: 'left' }}>Login with Google</span>
-                    </button>
-                </div>
-
-                <p style={{ marginTop: '32px', color: '#64748b', fontSize: '0.9rem' }}>
-                    Don't have an account? <span style={{ color: '#db2777', fontWeight: 600, cursor: 'pointer' }}>Sign Up</span>
-                </p>
-            </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 sm:p-8 animate-fade-in">
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl p-8 sm:p-10 border border-white/50 space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 to-slate-700 bg-clip-text text-transparent mb-2">
+            Welcome Back
+          </h2>
+          <p className="text-gray-600 text-sm">Sign in to your account</p>
         </div>
-    );
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              placeholder="Enter your email"
+              required
+              className="w-full px-4 py-4 text-lg border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/50 backdrop-blur-sm shadow-sm transition-all duration-300 placeholder-gray-500"
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="relative">
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              required
+              className="w-full pl-12 pr-12 py-4 text-lg border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/50 backdrop-blur-sm shadow-sm transition-all duration-300 placeholder-gray-500"
+              disabled={isLoading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+              disabled={isLoading}
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm animate-slide-down">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-semibold text-lg rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-md"
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              "Sign In"
+            )}
+          </button>
+        </form>
+
+        <div className="text-center pt-4">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              onClick={onGoToSignup}
+              disabled={isLoading}
+              className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-all duration-200 disabled:opacity-50"
+            >
+              Create one
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default LoginPage;

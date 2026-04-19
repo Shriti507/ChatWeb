@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum MessageDeliveryStatus {
+  SENT
+  DELIVERED
+}
+
+model User {
+  id                   String               @id
+  email                String               @unique
+  password             String
+  name                 String
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  memberships          ConversationMember[]
+  sentMessages         Message[]            @relation("MessageSender")
+  deliveries           MessageDelivery[]
+  createdConversations Conversation[]       @relation("ConversationCreator")
+  invitesReceived      ConversationInvite[] @relation("ConversationInvitee")
+  invitesSent          ConversationInvite[] @relation("ConversationInviter")
+}
+
+model Conversation {
+  id        String               @id
+  createdBy String
+  isPrivate Boolean              @default(false)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  creator   User                 @relation("ConversationCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  members   ConversationMember[]
+  messages  Message[]
+  invites   ConversationInvite[]
+}
+
+model ConversationInvite {
+  id             String       @id @default(cuid())
+  conversationId String
+  userId         String
+  invitedBy      String
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  invitee        User         @relation("ConversationInvitee", fields: [userId], references: [id], onDelete: Cascade)
+  inviter        User         @relation("ConversationInviter", fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([invitedBy])
+}
+
+model ConversationMember {
+  id             String       @id @default(cuid())
+  userId         String
+  conversationId String
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id              String            @id @default(cuid())
+  conversationId  String
+  senderId        String
+  clientMessageId String
+  content         String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  conversation    Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender            User              @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  deliveries        MessageDelivery[]
+
+  @@unique([conversationId, senderId, clientMessageId])
+  @@index([conversationId, createdAt])
+}
+
+model MessageDelivery {
+  id        String                @id @default(cuid())
+  messageId String
+  userId    String
+  status    MessageDeliveryStatus @default(SENT)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  message   Message               @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId, status])
+}

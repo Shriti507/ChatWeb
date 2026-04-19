@@ -5,22 +5,36 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin && nodemon src/index.ts"
+    "dev": "export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin && nodemon src/index.ts",
+    "prisma:generate": "node --import ./scripts/prisma-env.mjs ./node_modules/prisma/build/index.js generate",
+    "prisma:migrate": "node --import ./scripts/prisma-env.mjs ./node_modules/prisma/build/index.js migrate dev",
+    "prisma:deploy": "node --import ./scripts/prisma-env.mjs ./node_modules/prisma/build/index.js migrate deploy",
+    "prisma:exec": "node --import ./scripts/prisma-env.mjs ./node_modules/prisma/build/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.6.0",
     "nodemon": "^3.1.14",
+    "prisma": "^6.19.3",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
