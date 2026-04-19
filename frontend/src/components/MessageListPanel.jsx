@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { authHeaders } from "../utils/session";
 import { Search, Users } from "lucide-react";
 import CreateGroupModal from "./CreateGroupModal";
+import { API } from "../utils/api";
 
 const MessageListPanel = ({
   onSelectChat,
@@ -28,12 +29,33 @@ const MessageListPanel = ({
         return;
       }
 
-      fetch(`/api/users/search?email=${encodeURIComponent(searchTerm)}`, {
+      console.log("[DEBUG] Searching for username:", searchTerm);
+      console.log("[DEBUG] Fetch URL:", `${API}/api/users/search?username=${encodeURIComponent(searchTerm)}`);
+      fetch(`${API}/api/users/search?username=${encodeURIComponent(searchTerm)}`, {
         headers: authHeaders(),
-      })
-        .then((r) => r.json())
-        .then(setSearchResults)
-        .catch(() => setSearchResults([]));
+        credentials: "include", // This matches the backend 'credentials: true' config
+  })
+        .then(async (r) => {
+          console.log("[DEBUG] Response status:", r.status);
+          const text = await r.text();
+          console.log("[DEBUG] Response text preview:", text.substring(0, 100));
+          if (!r.ok) {
+            throw new Error(`HTTP ${r.status}: ${text.substring(0, 100)}`);
+          }
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            throw new Error(`Invalid JSON: ${text.substring(0, 100)}`);
+          }
+        })
+        .then((data) => {
+          console.log("[DEBUG] Search results:", data);
+          setSearchResults(data);
+        })
+        .catch((err) => {
+          console.error("[DEBUG] Search error:", err.message);
+          setSearchResults([]);
+        });
     }, 300);
 
     return () => clearTimeout(timeoutId);
@@ -79,7 +101,10 @@ const MessageListPanel = ({
                     : "hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:shadow-md"
                 }
               `}
-              onClick={() => onStartChat(user.id)}
+              onClick={() => {
+                console.log("[DEBUG] Clicked user from search:", user);
+                onStartChat(user.id);
+              }}
             >
               <div className="relative">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm shadow-lg group-hover:scale-105 transition-transform duration-200">

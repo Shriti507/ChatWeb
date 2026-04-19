@@ -287,18 +287,18 @@ export const createDurableMessage = async ({
   return { message, duplicate: false };
 };
 
-export const searchUsersByEmail = async (
-  emailQuery: string,
+export const searchUsersByUsername = async (
+  usernameQuery: string,
   currentUserId: string
 ) => {
-  if (!emailQuery || emailQuery.length < 2) {
+  if (!usernameQuery || usernameQuery.length < 2) {
     return [];
   }
 
   return prisma.user.findMany({
     where: {
-      email: {
-        contains: emailQuery,
+      name: {
+        contains: usernameQuery,
         mode: "insensitive",
       },
       NOT: {

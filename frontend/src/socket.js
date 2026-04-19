@@ -1,7 +1,9 @@
 import { io } from "socket.io-client";
 import { getToken } from "./utils/session";
 
-const SOCKET_URL = "http://localhost:3000";
+import { API } from "./utils/api";
+
+const SOCKET_URL = API;
 
 export const socket = io(SOCKET_URL, {
     autoConnect: false,

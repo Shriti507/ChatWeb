@@ -8,10 +8,10 @@ import {
   updateMessageByClientMessageId,
   upsertServerMessage,
 } from "../utils/db";
-import { socket } from "../socket";
+import { socket, connectSocketWithToken } from "../socket";
 import { authHeaders, getCurrentUserId } from "../utils/session";
+import { API } from "../utils/api";
 
-const API_URL = "http://localhost:3000/api";
 const MAX_RETRY = 5;
 
 const toUiMessage = (serverMessage, currentUserId) => ({
@@ -50,8 +50,9 @@ const ChatLayout = ({ onLogout }) => {
   // Fetch conversations
   const fetchConversations = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/conversations`, {
+      const response = await fetch(`${API}/api/conversations`, {
         headers: authHeaders(),
+        credentials: "include",
       });
       if (response.ok) {
         const convos = await response.json();
@@ -83,8 +84,9 @@ const ChatLayout = ({ onLogout }) => {
   // Fetch all users for discovery
   const fetchAllUsers = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/users`, {
+      const response = await fetch(`${API}/api/users`, {
         headers: authHeaders(),
+        credentials: "include",
       });
       if (response.ok) {
         setAllUsers(await response.json());
@@ -97,6 +99,25 @@ const ChatLayout = ({ onLogout }) => {
   useEffect(() => {
     fetchAllUsers();
   }, [fetchAllUsers]);
+
+  // Connect socket on mount
+  useEffect(() => {
+    console.log("[DEBUG] Connecting socket...");
+    connectSocketWithToken();
+    
+    socket.on("connect", () => {
+      console.log("[DEBUG] Socket connected:", socket.id);
+    });
+    
+    socket.on("connect_error", (err) => {
+      console.error("[DEBUG] Socket connection error:", err.message);
+    });
+    
+    return () => {
+      socket.off("connect");
+      socket.off("connect_error");
+    };
+  }, []);
 
   const syncFromServer = async (conversationId) => {
     setIsSyncing(true);
@@ -112,7 +133,7 @@ const ChatLayout = ({ onLogout }) => {
       if (lastTimestamp) query.set("after", lastTimestamp);
 
       const response = await fetch(
-        `${API_URL}/messages/${conversationId}?${query.toString()}`,
+        `${API}/api/messages/${conversationId}?${query.toString()}`,
         { headers: authHeaders() }
       );
       if (!response.ok) return;
@@ -194,9 +215,11 @@ const ChatLayout = ({ onLogout }) => {
       return;
     }
     const conversationId = String(selectedChat.id);
+    console.log("[DEBUG] useEffect joining conversation:", conversationId);
     setSocketJoinState({ conversationId, status: "joining", error: null });
 
     socket.emit("join_conversation", conversationId, (ack) => {
+      console.log("[DEBUG] Join conversation ack:", ack);
       setSocketJoinState((prev) => {
         if (prev.conversationId !== conversationId) return prev;
         if (ack?.ok) return { conversationId, status: "joined", error: null };
@@ -212,6 +235,7 @@ const ChatLayout = ({ onLogout }) => {
       }
     });
     return () => {
+      console.log("[DEBUG] Leaving conversation:", conversationId);
       socket.emit("leave_conversation", conversationId);
       setSocketJoinState({ conversationId: null, status: "idle", error: null });
     };
@@ -328,31 +352,39 @@ const ChatLayout = ({ onLogout }) => {
   };
 
   const handleStartChat = async (targetUserId) => {
+    console.log("[DEBUG] Starting chat with user:", targetUserId);
     try {
-      const response = await fetch(`${API_URL}/conversations/direct`, {
+      const response = await fetch(`${API}/api/conversation`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...authHeaders(),
         },
-        body: JSON.stringify({ userId: targetUserId }),
+        body: JSON.stringify({ targetUserId: String(targetUserId) }),
       });
+      console.log("[DEBUG] Conversation API response status:", response.status);
       if (response.ok) {
         const conversation = await response.json();
+        console.log("[DEBUG] Conversation created:", conversation);
         const otherUser = conversation.participants.find(
           (p) => p.id !== userId
         );
         const formattedConvo = {
-          id: conversation.id,
-          name: otherUser ? otherUser.name : "Chat",
+          id: String(conversation.id),
+          name: otherUser ? otherUser.name : targetUserId,
           isGroup: conversation.isGroup || false,
           participants: conversation.participants,
         };
+        console.log("[DEBUG] Setting selected chat:", formattedConvo);
         setSelectedChat(formattedConvo);
+        // Socket join will be handled by useEffect when selectedChat changes
         fetchConversations(); // refresh list
+      } else {
+        const error = await response.json();
+        console.error("[DEBUG] Failed to create conversation:", error);
       }
     } catch (error) {
-      console.error("Failed to start chat:", error);
+      console.error("[DEBUG] Failed to start chat:", error);
     }
   };
 

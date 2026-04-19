@@ -83,13 +83,13 @@ router.get(
 
 
 
-// User Discovery 
+// User Discovery
+
+// Search users by email 
+router.get("/users/search", requireAuth, searchUsers);
 
 // Get all users (default view)
 router.get("/users", requireAuth, getAllUsersHandler);
-
-// Search users by email
-router.get("/users/search", requireAuth, searchUsers);
 
 // Create or get DM conversation
 router.post("/conversation", requireAuth, createDMConversationHandler);

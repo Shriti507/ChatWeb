@@ -3,6 +3,7 @@ import { MessageSquare, HelpCircle, LogOut, Sun, Moon } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect } from "react";
 import { authHeaders, getCurrentUserId } from "../utils/session";
+import { API } from "../utils/api";
 
 const Sidebar = ({ onLogout }) => {
   const { theme, toggleTheme } = useTheme();
@@ -16,7 +17,7 @@ const Sidebar = ({ onLogout }) => {
       return;
     }
     setTimeout(() => setLoadingUser(false), 0);
-    fetch("http://localhost:3000/api/users/me", {
+    fetch(`${API}/api/users/me`, {
       headers: authHeaders(),
     })
       .then((res) => res.json())
@@ -139,7 +140,7 @@ const Sidebar = ({ onLogout }) => {
             "
             onClick={async () => {
               try {
-                await fetch("http://localhost:3000/auth/logout", {
+                await fetch(`${API}/auth/logout`, {
                   method: "POST",
                   headers: authHeaders(),
                 });
