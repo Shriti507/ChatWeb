@@ -39,9 +39,20 @@ const corsOptions: cors.CorsOptions = {
   credentials: true,
 };
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://chat-web-git-main-shritis-projects-686833b1.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+}));
+
+// app.options("*", cors());
 
 
 

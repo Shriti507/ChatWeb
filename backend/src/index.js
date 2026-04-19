@@ -18,23 +18,28 @@ const corsOptions = {
     origin: (origin, callback) => {
         if (!origin)
             return callback(null, true);
-        const allowedOrigins = [
-            process.env.CLIENT_URL,
-            "http://localhost:5173",
-            "http://localhost:3000"
-        ];
-        if (allowedOrigins.includes(origin)) {
+        const allowed = [process.env.CLIENT_URL, "http://localhost:5173", "http://localhost:3000"];
+        if (allowed.includes(origin)) {
             return callback(null, true);
         }
         return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
 };
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
+app.use(cors({
+    origin: [
+        "http://localhost:5173",
+        "https://chat-web-git-main-shritis-projects-686833b1.vercel.app"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+}));
+// app.options("*", cors());
 // socket.io
 const io = new Server(httpServer, {
     cors: {
-        origin: CLIENT_URL,
+        origin: [CLIENT_URL || "", "http://localhost:5173", "http://localhost:3000"],
         methods: ["GET", "POST"],
         credentials: true,
     },
@@ -65,14 +70,13 @@ io.use(async (socket, next) => {
 io.on("connection", (socket) => {
     const userId = socket.data.userId;
     // Join conversation room
-    socket.on("join_conversation", ({ conversationId }, ack) => {
+    socket.on("join_conversation", ({ conversationId }) => {
         socket.join(conversationId);
         if (!presenceByConversation.has(conversationId)) {
             presenceByConversation.set(conversationId, new Set());
         }
         presenceByConversation.get(conversationId).add(userId);
         socket.to(conversationId).emit("user_online", { conversationId, userId });
-        ack?.({ ok: true });
     });
     // SEND MESSAGE
     socket.on("send_message", async (payload, ack) => {
