@@ -273,6 +273,7 @@ export const getOrCreateDMConversation = async (meId, targetId) => {
     // Find existing DM
     let conversation = await prisma.conversation.findFirst({
         where: {
+            isGroup: false,
             members: {
                 every: {
                     userId: {
@@ -280,14 +281,14 @@ export const getOrCreateDMConversation = async (meId, targetId) => {
                     },
                 },
             },
+            AND: [
+                { members: { some: { userId: me } } },
+                { members: { some: { userId: target } } },
+            ],
         },
         include: {
             members: {
-                include: {
-                    user: {
-                        select: { id: true, name: true, email: true },
-                    },
-                },
+                include: { user: true },
             },
         },
     });

@@ -105,6 +105,9 @@ export declare const getOrCreateDMConversation: (meId: string, targetId: string)
         name: string;
         id: string;
         email: string;
+        password: string;
+        createdAt: Date;
+        updatedAt: Date;
     }[];
 }>;
 /**
