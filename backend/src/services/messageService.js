@@ -270,17 +270,10 @@ export const getOrCreateDMConversation = async (meId, targetId) => {
         throw new Error("CANNOT_DM_SELF");
     const me = meId.trim();
     const target = targetId.trim();
-    // Find existing DM
-    let conversation = await prisma.conversation.findFirst({
+    // Find existing DM: both users are members
+    const existing = await prisma.conversation.findFirst({
         where: {
-            isGroup: false,
-            members: {
-                every: {
-                    userId: {
-                        in: [me, target],
-                    },
-                },
-            },
+            isPrivate: true,
             AND: [
                 { members: { some: { userId: me } } },
                 { members: { some: { userId: target } } },
@@ -288,22 +281,26 @@ export const getOrCreateDMConversation = async (meId, targetId) => {
         },
         include: {
             members: {
-                include: { user: true },
+                include: {
+                    user: {
+                        select: { id: true, name: true, email: true },
+                    },
+                },
             },
         },
     });
-    // Verify exactly 1:1
-    if (conversation &&
-        conversation.members.length === 2 &&
-        conversation.members.every((m) => [me, target].includes(m.userId))) {
+    // Verify exactly 2 members (1:1)
+    if (existing &&
+        existing.members.length === 2 &&
+        existing.members.every((m) => [me, target].includes(m.userId))) {
         return {
-            id: conversation.id,
-            participants: conversation.members.map((m) => m.user),
+            id: existing.id,
+            participants: existing.members.map((m) => m.user),
         };
     }
     // Create new DM
     const convId = crypto.randomUUID();
-    conversation = await prisma.conversation.create({
+    const created = await prisma.conversation.create({
         data: {
             id: convId,
             createdBy: me,
@@ -323,8 +320,8 @@ export const getOrCreateDMConversation = async (meId, targetId) => {
         },
     });
     return {
-        id: conversation.id,
-        participants: conversation.members.map((m) => m.user),
+        id: created.id,
+        participants: created.members.map((m) => m.user),
     };
 };
 /**
@@ -449,13 +446,14 @@ export const getUserConversations = async (userId) => {
     return memberships.map((m) => {
         const conv = m.conversation;
         const otherMembers = conv.members.filter((mem) => mem.userId !== uid);
-        const displayName = conv.isGroup
+        const isGroup = conv.members.length > 2;
+        const displayName = isGroup
             ? conv.name || "Unnamed Group"
             : otherMembers[0]?.user.name || "Unknown";
         return {
             id: conv.id,
             name: displayName,
-            isGroup: conv.isGroup,
+            isGroup,
             participants: conv.members.map((mem) => mem.user),
             lastMessage: conv.messages[0]?.content || null,
             updatedAt: conv.updatedAt,
