@@ -28,6 +28,7 @@ const ChatArea = ({
         socketJoinError={socketJoinError}
         socketJoinLoading={socketJoinLoading}
         onCreatePublicConversation={onCreatePublicConversation}
+        currentUserId={currentUserId}
       />
 
       {/* Messages */}

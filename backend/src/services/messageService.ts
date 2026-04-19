@@ -426,3 +426,168 @@ export const getOrCreateDMConversation = async (
     participants: conversation.members.map((m) => m.user),
   };
 };
+
+/**
+ * Create a group conversation with multiple users
+ */
+export const createGroupConversation = async ({
+  creatorId,
+  name,
+  userIds,
+}: {
+  creatorId: string;
+  name: string;
+  userIds: string[];
+}) => {
+  const creator = creatorId.trim();
+  const groupName = name.trim();
+  const uniqueUserIds = [...new Set(userIds.map((id) => id.trim()))].filter(
+    (id) => id && id !== creator
+  );
+
+  if (!creator) {
+    throw new Error("INVALID_CREATOR_ID");
+  }
+  if (!groupName || groupName.length < 1) {
+    throw new Error("INVALID_GROUP_NAME");
+  }
+  if (uniqueUserIds.length < 1) {
+    throw new Error("MINIMUM_TWO_MEMBERS_REQUIRED");
+  }
+
+  // Verify all users exist
+  const users = await prisma.user.findMany({
+    where: { id: { in: uniqueUserIds } },
+    select: { id: true },
+  });
+
+  if (users.length !== uniqueUserIds.length) {
+    throw new Error("SOME_USERS_NOT_FOUND");
+  }
+
+  const conversationId = crypto.randomUUID();
+  const allMemberIds = [creator, ...uniqueUserIds];
+
+  const conversation = await prisma.conversation.create({
+    data: {
+      id: conversationId,
+      createdBy: creator,
+      isPrivate: false,
+      isGroup: true,
+      name: groupName,
+      members: {
+        create: allMemberIds.map((userId) => ({ userId })),
+      },
+    },
+    include: {
+      members: {
+        include: {
+          user: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      },
+    },
+  });
+
+  return {
+    id: conversation.id,
+    name: conversation.name,
+    isGroup: conversation.isGroup,
+    participants: conversation.members.map((m) => m.user),
+  };
+};
+
+/**
+ * Get group conversation members
+ */
+export const getConversationMembers = async (
+  conversationId: string,
+  userId: string
+) => {
+  const convId = conversationId.trim();
+  const uid = userId.trim();
+
+  if (!convId || !uid) {
+    throw new Error("INVALID_IDS");
+  }
+
+  // Verify user is a member
+  const membership = await prisma.conversationMember.findUnique({
+    where: {
+      conversationId_userId: { conversationId: convId, userId: uid },
+    },
+    select: { id: true },
+  });
+
+  if (!membership) {
+    throw new Error("FORBIDDEN_NOT_MEMBER");
+  }
+
+  const members = await prisma.conversationMember.findMany({
+    where: { conversationId: convId },
+    include: {
+      user: {
+        select: { id: true, name: true, email: true },
+      },
+    },
+  });
+
+  return members.map((m) => ({
+    id: m.user.id,
+    name: m.user.name,
+    email: m.user.email,
+    joinedAt: m.createdAt,
+  }));
+};
+
+/**
+ * Get user's conversations including groups
+ */
+export const getUserConversations = async (userId: string) => {
+  const uid = userId.trim();
+
+  const memberships = await prisma.conversationMember.findMany({
+    where: { userId: uid },
+    include: {
+      conversation: {
+        include: {
+          members: {
+            include: {
+              user: {
+                select: { id: true, name: true, email: true },
+              },
+            },
+          },
+          messages: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: {
+              content: true,
+              createdAt: true,
+              sender: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { conversation: { updatedAt: "desc" } },
+  });
+
+  return memberships.map((m) => {
+    const conv = m.conversation;
+    const otherMembers = conv.members.filter((mem) => mem.userId !== uid);
+    const displayName = conv.isGroup
+      ? conv.name || "Unnamed Group"
+      : otherMembers[0]?.user.name || "Unknown";
+
+    return {
+      id: conv.id,
+      name: displayName,
+      isGroup: conv.isGroup,
+      participants: conv.members.map((mem) => mem.user),
+      lastMessage: conv.messages[0]?.content || null,
+      updatedAt: conv.updatedAt,
+    };
+  });
+};
