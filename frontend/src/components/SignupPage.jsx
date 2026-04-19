@@ -52,7 +52,7 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
               type="text"
               placeholder="Full name"
               required
-              className="w-full px-4 py-4 text-lg border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/50 backdrop-blur-sm shadow-sm transition-all duration-300 placeholder-gray-500"
+              className="w-full px-4 py-4 text-lg text-gray-900 placeholder-gray-400 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/50 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 backdrop-blur-sm shadow-sm transition-all duration-300"
               disabled={isLoading}
             />
           </div>
@@ -64,7 +64,7 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
               type="email"
               placeholder="Enter your email"
               required
-              className="w-full px-4 py-4 text-lg border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/50 backdrop-blur-sm shadow-sm transition-all duration-300 placeholder-gray-500"
+              className="w-full px-4 py-4 text-lg text-gray-900 placeholder-gray-400 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/50 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 backdrop-blur-sm shadow-sm transition-all duration-300"
               disabled={isLoading}
             />
           </div>
@@ -77,7 +77,7 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
               placeholder="Create a password (min 6 chars)"
               minLength={6}
               required
-              className="w-full pl-12 pr-12 py-4 text-lg border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/50 backdrop-blur-sm shadow-sm transition-all duration-300 placeholder-gray-500"
+              className="w-full pl-12 pr-12 py-4 text-lg text-gray-900 placeholder-gray-400 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/50 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 backdrop-blur-sm shadow-sm transition-all duration-300"
               disabled={isLoading}
             />
             <button
