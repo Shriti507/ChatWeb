@@ -32,6 +32,8 @@ model Conversation {
   id        String               @id
   createdBy String
   isPrivate Boolean              @default(false)
+  isGroup   Boolean              @default(false)
+  name      String?
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
   creator   User                 @relation("ConversationCreator", fields: [createdBy], references: [id], onDelete: Restrict)

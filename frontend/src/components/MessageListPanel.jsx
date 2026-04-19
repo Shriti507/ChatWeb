@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { authHeaders } from "../utils/session";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
+import CreateGroupModal from "./CreateGroupModal";
 
 const MessageListPanel = ({
   onSelectChat,
@@ -9,9 +10,12 @@ const MessageListPanel = ({
   allUsers = [],
   onStartChat,
   onlineUserIds = new Set(),
+  onGroupCreated,
+  currentUserId,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
 
   const filteredConversations = conversations.filter((convo) =>
     convo.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -49,110 +53,121 @@ const MessageListPanel = ({
     if (searchTerm.length > 0) {
       if (searchResults.length === 0) {
         return (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            <div className="w-16 h-16 bg-gray-200 rounded-2xl mx-auto mb-4 flex items-center justify-center dark:bg-gray-700">
-              <Search className="w-8 h-8 opacity-50" />
+          <div className="flex-1 flex items-center justify-center p-8 text-center">
+            <div className="max-w-sm">
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg">
+                <Search className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">No users found</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Try searching for a different email address</p>
             </div>
-            <h3 className="text-lg font-semibold mb-2">No users found</h3>
-            <p className="text-sm">Try searching for a different email</p>
           </div>
         );
       }
 
-      return searchResults.map((user) => {
-        const isSelected = selectedChat?.id === user.id;
+        return searchResults.map((user) => {
+          const isSelected = selectedChat?.id === user.id;
 
-        return (
-          <div
-            key={user.id}
-            className={`flex gap-4 p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800
-              ${
-                isSelected
-                  ? "bg-gradient-to-r from-pink-50 to-pink-25 dark:from-pink-500/10 dark:to-pink-600/10 border-r-4 border-pink-500 shadow-inner"
-                  : ""
-              }`}
-            onClick={() => onStartChat(user.id)}
-          >
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shadow-lg">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
+          return (
+            <div
+              key={user.id}
+              className={`
+                flex gap-4 p-4 cursor-pointer transition-all duration-200 group
+                ${
+                  isSelected
+                    ? "bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-500/10 dark:to-purple-500/10 border-r-4 border-blue-500 shadow-lg"
+                    : "hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:shadow-md"
+                }
+              `}
+              onClick={() => onStartChat(user.id)}
+            >
+              <div className="relative">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm shadow-lg group-hover:scale-105 transition-transform duration-200">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-3 border-white dark:border-gray-900 rounded-full shadow-lg"></div>
+              </div>
 
-            <div className="flex-1 min-w-0 py-1">
-              <h4 className="font-semibold text-gray-900 truncate dark:text-white text-base">
-                {user.name}
-              </h4>
-              <p className="text-sm text-gray-500 truncate dark:text-gray-400 max-w-[200px]">
-                {user.email}
-              </p>
+              <div className="flex-1 min-w-0 py-1">
+                <h4 className="font-semibold text-gray-900 truncate dark:text-white text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                  {user.name}
+                </h4>
+                <p className="text-sm text-gray-500 truncate dark:text-gray-400 max-w-[200px] group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200">
+                  {user.email}
+                </p>
+              </div>
             </div>
-          </div>
-        );
-      });
+          );
+        });
     }
 
     
     if (conversations.length > 0) {
       if (filteredConversations.length === 0) {
         return (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            <div className="w-16 h-16 bg-gray-200 rounded-2xl mx-auto mb-4 flex items-center justify-center dark:bg-gray-700">
-              <Search className="w-8 h-8 opacity-50" />
+          <div className="flex-1 flex items-center justify-center p-8 text-center">
+            <div className="max-w-sm">
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg">
+                <Search className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">No conversations</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">No conversations matching your search</p>
             </div>
-            <h3 className="text-lg font-semibold mb-2">No conversations</h3>
-            <p className="text-sm">No conversations matching your search</p>
           </div>
         );
       }
 
-      return filteredConversations.map((conversation) => {
-        const isOnline = isUserOnline(conversation);
-        const unreadCount = getUnreadCount(conversation);
-        const isSelected = selectedChat?.id === conversation.id;
+        return filteredConversations.map((conversation) => {
+          const isOnline = isUserOnline(conversation);
+          const unreadCount = getUnreadCount(conversation);
+          const isSelected = selectedChat?.id === conversation.id;
 
-        return (
-          <div
-            key={conversation.id}
-            className={`flex gap-4 p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800
-              ${
-                isSelected
-                  ? "bg-gradient-to-r from-pink-50 to-pink-25 dark:from-pink-500/10 dark:to-pink-600/10 border-r-4 border-pink-500 shadow-inner"
-                  : ""
-              }`}
-            onClick={() => onSelectChat(conversation)}
-          >
-            <div className="relative">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shadow-lg">
-                {conversation.name.charAt(0).toUpperCase()}
+          return (
+            <div
+              key={conversation.id}
+              className={`
+                flex gap-4 p-4 cursor-pointer transition-all duration-200 group
+                ${
+                  isSelected
+                    ? "bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-500/10 dark:to-purple-500/10 border-r-4 border-blue-500 shadow-lg"
+                    : "hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:shadow-md"
+                }
+              `}
+              onClick={() => onSelectChat(conversation)}
+            >
+              <div className="relative">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm shadow-lg group-hover:scale-105 transition-transform duration-200">
+                  {conversation.name.charAt(0).toUpperCase()}
+                </div>
+
+                {isOnline && (
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-3 border-white dark:border-gray-900 rounded-full shadow-lg"></div>
+                )}
               </div>
 
-              {isOnline && (
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
+              <div className="flex-1 min-w-0 py-1">
+                <div className="flex justify-between mb-1">
+                  <h4 className="font-semibold text-gray-900 truncate dark:text-white text-base group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                    {conversation.name}
+                  </h4>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors duration-200">
+                    {conversation.time}
+                  </span>
+                </div>
+
+                <p className="text-sm text-gray-500 truncate dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200">
+                  {conversation.lastMessage || "No messages yet"}
+                </p>
+              </div>
+
+              {unreadCount > 0 && (
+                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full flex items-center justify-center shadow-lg shadow-blue-500/25">
+                  {unreadCount}
+                </div>
               )}
             </div>
-
-            <div className="flex-1 min-w-0 py-1">
-              <div className="flex justify-between mb-1">
-                <h4 className="font-semibold text-gray-900 truncate dark:text-white text-base">
-                  {conversation.name}
-                </h4>
-                <span className="text-xs text-gray-400">
-                  {conversation.time}
-                </span>
-              </div>
-
-              <p className="text-sm text-gray-500 truncate dark:text-gray-400">
-                {conversation.lastMessage || "No messages yet"}
-              </p>
-            </div>
-
-            {unreadCount > 0 && (
-              <div className="w-6 h-6 bg-pink-500 text-white text-xs rounded-full flex items-center justify-center">
-                {unreadCount}
-              </div>
-            )}
-          </div>
-        );
-      });
+          );
+        });
     }
 
       
@@ -160,18 +175,18 @@ const MessageListPanel = ({
       return allUsers.map((user) => (
         <div
           key={user.id}
-          className="flex gap-4 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+          className="flex gap-4 p-4 cursor-pointer transition-all duration-200 group hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:shadow-md"
           onClick={() => onStartChat(user.id)}
         >
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shadow-lg">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm shadow-lg group-hover:scale-105 transition-transform duration-200">
             {user.name.charAt(0).toUpperCase()}
           </div>
 
-          <div>
-            <h4 className="font-semibold text-gray-900 dark:text-white">
+          <div className="flex-1 min-w-0 py-1">
+            <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
               {user.name}
             </h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200">
               {user.email}
             </p>
           </div>
@@ -181,37 +196,59 @@ const MessageListPanel = ({
 
 
     return (
-      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-        <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-        <h3 className="text-lg font-semibold">Discover users</h3>
-        <p className="text-sm">
-          Search users by email to start new conversations
-        </p>
+      <div className="flex-1 flex items-center justify-center p-8 text-center">
+        <div className="max-w-sm">
+          <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg">
+            <Search className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+          </div>
+          <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Discover users</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Search users by email to start new conversations
+          </p>
+        </div>
       </div>
     );
   };
 
   return (
-    <aside className="w-[380px] bg-white border-r flex flex-col dark:bg-gray-900">
-    
-      <div className="p-6 border-b">
-        <h2 className="text-2xl font-bold mb-4 dark:text-white">Messages</h2>
+    <>
+      <aside className="w-80 lg:w-96 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-700/50 flex flex-col shadow-xl">
+        <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Messages
+            </h2>
+            <button
+              onClick={() => setIsCreateGroupOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-blue-500/25 text-sm font-medium"
+            >
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">New Group</span>
+            </button>
+          </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search users by email..."
-            className="w-full pl-10 py-3 rounded-xl border dark:bg-gray-800 dark:text-white"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" />
+            <input
+              type="text"
+              placeholder="Search users by email..."
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-gray-200/50 dark:border-gray-600/50 dark:bg-gray-800/50 dark:text-white bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 shadow-sm focus:shadow-md transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
-      </div>
 
-      
-      <div className="flex-1 overflow-y-auto">{renderContent()}</div>
-    </aside>
+        <div className="flex-1 overflow-y-auto">{renderContent()}</div>
+      </aside>
+
+      <CreateGroupModal
+        isOpen={isCreateGroupOpen}
+        onClose={() => setIsCreateGroupOpen(false)}
+        onGroupCreated={onGroupCreated}
+        currentUserId={currentUserId}
+      />
+    </>
   );
 };
 

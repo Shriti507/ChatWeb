@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { Request, Response } from "express";
 import {
   createConversation,
   getMessages,
@@ -10,9 +11,13 @@ import {
   getAllUsersHandler,
   createDMConversationHandler,
   searchUsers,
+  createGroupConversationHandler,
+  getConversationMembersHandler,
+  listConversationsHandler,
 } from "../controllers/messageController.js";
-import { Prisma } from "@prisma/client";
 import { requireAuth } from "../middleware/authMiddleware.js";
+import { prisma } from "../lib/prisma.js";
+import type { AuthedRequest } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -46,6 +51,23 @@ router.get(
   listConversationInvites
 );
 
+// Create group conversation
+router.post(
+  "/conversations/group",
+  requireAuth,
+  createGroupConversationHandler
+);
+
+// Get conversation members
+router.get(
+  "/conversations/:conversationId/members",
+  requireAuth,
+  getConversationMembersHandler
+);
+
+// List all user conversations
+router.get("/conversations", requireAuth, listConversationsHandler);
+
 
 
 // Message Routes
@@ -75,10 +97,8 @@ router.post("/conversation", requireAuth, createDMConversationHandler);
 
 
 // Current User
-
-
-router.get("/users/me", requireAuth, async (req, res) => {
-  const userId = req.user?.id; 
+router.get("/users/me", requireAuth, async (req: AuthedRequest, res: Response) => {
+  const userId = req.user?.id;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },

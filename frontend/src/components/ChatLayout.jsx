@@ -329,13 +329,13 @@ const ChatLayout = ({ onLogout }) => {
 
   const handleStartChat = async (targetUserId) => {
     try {
-      const response = await fetch(`${API_URL}/conversation`, {
+      const response = await fetch(`${API_URL}/conversations/direct`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...authHeaders(),
         },
-        body: JSON.stringify({ targetUserId }),
+        body: JSON.stringify({ userId: targetUserId }),
       });
       if (response.ok) {
         const conversation = await response.json();
@@ -345,6 +345,7 @@ const ChatLayout = ({ onLogout }) => {
         const formattedConvo = {
           id: conversation.id,
           name: otherUser ? otherUser.name : "Chat",
+          isGroup: conversation.isGroup || false,
           participants: conversation.participants,
         };
         setSelectedChat(formattedConvo);
@@ -355,8 +356,19 @@ const ChatLayout = ({ onLogout }) => {
     }
   };
 
+  const handleGroupCreated = (conversation) => {
+    const formattedConvo = {
+      id: conversation.id,
+      name: conversation.name || "Unnamed Group",
+      isGroup: true,
+      participants: conversation.participants,
+    };
+    setSelectedChat(formattedConvo);
+    fetchConversations(); // refresh list
+  };
+
   return (
-    <div className="flex h-screen w-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen w-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
       <Sidebar onLogout={onLogout} />
 
       <MessageListPanel
@@ -366,6 +378,8 @@ const ChatLayout = ({ onLogout }) => {
         allUsers={allUsers}
         onStartChat={handleStartChat}
         onlineUserIds={onlineUserIds}
+        onGroupCreated={handleGroupCreated}
+        currentUserId={userId}
       />
       <ChatArea
         selectedChat={selectedChat}

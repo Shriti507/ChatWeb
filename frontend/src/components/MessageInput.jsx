@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Paperclip, Mic2, Send } from "lucide-react";
+import { Paperclip, Mic2, Send, Smile } from "lucide-react";
 import { socket } from "../socket";
 import { saveMessage } from "../utils/db";
 
@@ -91,7 +91,7 @@ const MessageInput = ({
   };
 
   return (
-    <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm shadow-2xl dark:border-gray-700 dark:bg-gray-900/80 p-4 sticky bottom-0 z-50">
+    <div className="border-t border-gray-200/50 dark:border-gray-700/50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-2xl p-4 sticky bottom-0 z-50">
       <form
         ref={formRef}
         onSubmit={handleSubmit}
@@ -110,22 +110,33 @@ const MessageInput = ({
                   ? "Sending..."
                   : "Type a message..."
             }
-            className="w-full p-4 pr-12 py-5 bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-600/50 rounded-3xl text-base focus:outline-none focus:ring-4 focus:ring-pink-200/50 focus:border-pink-300 shadow-lg backdrop-blur-sm dark:focus:ring-pink-500/20 dark:focus:border-pink-600/50 resize-none transition-all duration-200 hover:shadow-xl max-h-32 overflow-y-auto"
+            className="w-full px-6 py-4 pr-32 bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-600/50 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 shadow-sm focus:shadow-md transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none overflow-y-auto"
             disabled={!joinReady || isSending}
             rows={1}
           />
-          <button
-            type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-2xl transition-all dark:text-gray-500 dark:hover:text-white dark:hover:bg-gray-700"
-            disabled={!joinReady}
-          >
-            <Paperclip className="w-5 h-5" />
-          </button>
+          
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <button
+              type="button"
+              className="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-gray-700 rounded-full transition-all duration-200 disabled:opacity-50"
+              disabled={!joinReady}
+            >
+              <Paperclip className="w-5 h-5" />
+            </button>
+            
+            <button
+              type="button"
+              className="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-gray-700 rounded-full transition-all duration-200 disabled:opacity-50"
+              disabled={!joinReady}
+            >
+              <Smile className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <button
           type="button"
-          className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-3xl transition-all dark:text-gray-500 dark:hover:text-white dark:hover:bg-gray-700 flex-shrink-0"
+          className="p-3.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-white dark:hover:bg-gray-700 rounded-full transition-all duration-200 disabled:opacity-50 flex-shrink-0"
           disabled={!joinReady}
         >
           <Mic2 className="w-5 h-5" />
@@ -135,16 +146,16 @@ const MessageInput = ({
           type="submit"
           disabled={!joinReady || !message.trim() || isSending}
           className={`
-                        flex items-center justify-center w-14 h-14 rounded-3xl shadow-xl transition-all duration-200 flex-shrink-0
-                        ${
-                          joinReady && message.trim()
-                            ? "bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 shadow-pink-500/25 hover:shadow-pink-400/50 hover:scale-105 active:scale-95"
-                            : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500"
-                        }
-                    `}
+            flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all duration-200 flex-shrink-0
+            ${
+              joinReady && message.trim()
+                ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-blue-500/25 hover:shadow-blue-400/50 hover:scale-105 active:scale-95"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+            }
+          `}
         >
           <Send
-            className={`w-6 h-6 transition-transform ${isSending ? "animate-spin" : ""}`}
+            className={`w-5 h-5 transition-transform ${isSending ? "animate-pulse" : ""}`}
           />
         </button>
       </form>
