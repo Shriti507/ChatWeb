@@ -1,21 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 
 :root {
-  --bg-primary: #ffffff; 
-  --sidebar-bg: #1c1c1c; 
+  --bg-primary: #ffffff;
+  --sidebar-bg: #1c1c1c;
   --panel-bg: #ffffff;
   --chat-bg: #ffffff;
-  --accent-primary: #fb6f92; 
+  --accent-primary: #fb6f92;
   --accent-secondary: #ffe4e6;
-  --text-primary: #1e293b; 
+  --text-primary: #1e293b;
   --text-secondary: #64748b;
-  --text-inverse: #ffffff;  
-  
+  --text-inverse: #ffffff;
+
   --bubble-received: #f1f5f9;
   --bubble-sent: #fb6f92;
-  
+
   --border-color: #e2e8f0;
-  
+
   --sidebar-width: 250px;
   --panel-width: 350px;
 
@@ -36,6 +40,7 @@
   --accent-secondary: #312e81;
 }
 
+/* Global resets */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -43,7 +48,7 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   height: 100vh;
@@ -56,6 +61,7 @@ body {
   width: 100%;
 }
 
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }

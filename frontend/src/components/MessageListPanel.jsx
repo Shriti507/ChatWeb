@@ -1,180 +1,218 @@
-import React from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { authHeaders } from "../utils/session";
+import { Search } from "lucide-react";
 
-const MessageListPanel = ({ onSelectChat, selectedChat }) => {
-    const contacts = [
-        { id: 1, name: 'Albert Flores', lastMessage: "Hi, I'm confirming your check-in...", time: '10:37', status: 'online', unread: 0, avatar: 'AF' },
-        { id: 2, name: 'Annette Black', lastMessage: "I'm arriving tomorrow afternoon..", time: '9:15', status: 'offline', unread: 1, avatar: 'AB' },
-        { id: 3, name: 'Edwin Johnson', lastMessage: 'Cool! Is there a coffee machine...', time: '9:01', status: 'online', unread: 0, avatar: 'EJ', selected: true },
-        { id: 4, name: 'Jerome Bell', lastMessage: "I've received your booking reque...", time: 'Thu', status: 'offline', unread: 0, avatar: 'JB' },
-        { id: 5, name: 'Darrell Steward', lastMessage: 'Hello! Just a reminder that chec...', time: 'Thu', status: 'online', unread: 0, avatar: 'DS' },
-        { id: 6, name: 'Steven Jordan', lastMessage: 'Sounds good! Could you confir...', time: 'Wed', status: 'online', unread: 2, avatar: 'SJ' },
-        { id: 7, name: 'Wanda Hall', lastMessage: 'Thanks for the update! Just to d...', time: 'Wed', status: 'offline', unread: 1, avatar: 'WH' },
-        { id: 8, name: 'Victor Olson', lastMessage: 'Hi, just letting you know that the...', time: 'Wed', status: 'offline', unread: 0, avatar: 'VO' },
-    ];
+const MessageListPanel = ({
+  onSelectChat,
+  selectedChat,
+  conversations = [],
+  allUsers = [],
+  onStartChat,
+  onlineUserIds = new Set(),
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+
+  const filteredConversations = conversations.filter((convo) =>
+    convo.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      fetch(`/api/users/search?email=${encodeURIComponent(searchTerm)}`, {
+        headers: authHeaders(),
+      })
+        .then((r) => r.json())
+        .then(setSearchResults)
+        .catch(() => setSearchResults([]));
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  const isUserOnline = (conversation) => {
+    return Array.from(onlineUserIds).some((userId) =>
+      conversation.participants?.some((p) => p.id === userId)
+    );
+  };
+
+  const getUnreadCount = () => 0;
+
+
+  const renderContent = () => {
+   
+    if (searchTerm.length > 0) {
+      if (searchResults.length === 0) {
+        return (
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+            <div className="w-16 h-16 bg-gray-200 rounded-2xl mx-auto mb-4 flex items-center justify-center dark:bg-gray-700">
+              <Search className="w-8 h-8 opacity-50" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No users found</h3>
+            <p className="text-sm">Try searching for a different email</p>
+          </div>
+        );
+      }
+
+      return searchResults.map((user) => {
+        const isSelected = selectedChat?.id === user.id;
+
+        return (
+          <div
+            key={user.id}
+            className={`flex gap-4 p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800
+              ${
+                isSelected
+                  ? "bg-gradient-to-r from-pink-50 to-pink-25 dark:from-pink-500/10 dark:to-pink-600/10 border-r-4 border-pink-500 shadow-inner"
+                  : ""
+              }`}
+            onClick={() => onStartChat(user.id)}
+          >
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shadow-lg">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+
+            <div className="flex-1 min-w-0 py-1">
+              <h4 className="font-semibold text-gray-900 truncate dark:text-white text-base">
+                {user.name}
+              </h4>
+              <p className="text-sm text-gray-500 truncate dark:text-gray-400 max-w-[200px]">
+                {user.email}
+              </p>
+            </div>
+          </div>
+        );
+      });
+    }
+
+    
+    if (conversations.length > 0) {
+      if (filteredConversations.length === 0) {
+        return (
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+            <div className="w-16 h-16 bg-gray-200 rounded-2xl mx-auto mb-4 flex items-center justify-center dark:bg-gray-700">
+              <Search className="w-8 h-8 opacity-50" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No conversations</h3>
+            <p className="text-sm">No conversations matching your search</p>
+          </div>
+        );
+      }
+
+      return filteredConversations.map((conversation) => {
+        const isOnline = isUserOnline(conversation);
+        const unreadCount = getUnreadCount(conversation);
+        const isSelected = selectedChat?.id === conversation.id;
+
+        return (
+          <div
+            key={conversation.id}
+            className={`flex gap-4 p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800
+              ${
+                isSelected
+                  ? "bg-gradient-to-r from-pink-50 to-pink-25 dark:from-pink-500/10 dark:to-pink-600/10 border-r-4 border-pink-500 shadow-inner"
+                  : ""
+              }`}
+            onClick={() => onSelectChat(conversation)}
+          >
+            <div className="relative">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shadow-lg">
+                {conversation.name.charAt(0).toUpperCase()}
+              </div>
+
+              {isOnline && (
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0 py-1">
+              <div className="flex justify-between mb-1">
+                <h4 className="font-semibold text-gray-900 truncate dark:text-white text-base">
+                  {conversation.name}
+                </h4>
+                <span className="text-xs text-gray-400">
+                  {conversation.time}
+                </span>
+              </div>
+
+              <p className="text-sm text-gray-500 truncate dark:text-gray-400">
+                {conversation.lastMessage || "No messages yet"}
+              </p>
+            </div>
+
+            {unreadCount > 0 && (
+              <div className="w-6 h-6 bg-pink-500 text-white text-xs rounded-full flex items-center justify-center">
+                {unreadCount}
+              </div>
+            )}
+          </div>
+        );
+      });
+    }
+
+      
+    if (allUsers.length > 0) {
+      return allUsers.map((user) => (
+        <div
+          key={user.id}
+          className="flex gap-4 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+          onClick={() => onStartChat(user.id)}
+        >
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shadow-lg">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-gray-900 dark:text-white">
+              {user.name}
+            </h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {user.email}
+            </p>
+          </div>
+        </div>
+      ));
+    }
+
 
     return (
-        <aside style={{
-            width: 'var(--panel-width)',
-            background: 'var(--panel-bg)',
-            borderRight: '1px solid var(--border-color)',
-            display: 'flex',
-            flexDirection: 'column',
-            zIndex: 10
-        }}>
-            <div style={{ padding: 'var(--spacing-lg)' }}>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: 'var(--spacing-md)' }}>Messages</h2>
-                
-                <div style={{ display: 'flex', gap: '8px', marginBottom: 'var(--spacing-md)' }}>
-                    <div style={{
-                        flex: 1, 
-                        background: 'var(--accent-primary)', 
-                        color: 'white', 
-                        padding: '8px 16px', 
-                        borderRadius: '24px', 
-                        textAlign: 'center', 
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        cursor: 'pointer'
-                    }}>
-                        General <span style={{ opacity: 0.8, fontSize: '0.75rem', marginLeft: '4px' }}>6</span>
-                    </div>
-                    <div style={{
-                        flex: 1, 
-                        background: 'var(--bg-primary)',
-                        color: 'var(--text-secondary)', 
-                        padding: '8px 16px', 
-                        borderRadius: '24px', 
-                        textAlign: 'center', 
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        border: '1px solid var(--border-color)',
-                        cursor: 'pointer'
-                    }}>
-                        Archive <span style={{ opacity: 0.8, fontSize: '0.75rem', marginLeft: '4px' }}>2</span>
-                    </div>
-                </div>
-
-                <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
-                    <input 
-                        type="text" 
-                        placeholder="Search..."
-                        style={{
-                            width: '100%',
-                            padding: '10px 16px 10px 40px',
-                            borderRadius: '24px',
-                            border: '1px solid var(--border-color)',
-                            background: 'var(--bg-primary)',
-                            fontSize: '0.875rem',
-                            outline: 'none'
-                        }}
-                    />
-                    <Search style={{ position: 'absolute', left: '14px', top: '10px', color: 'var(--text-secondary)' }} size={16} />
-                </div>
-            </div>
-            
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--spacing-sm)' }}>
-                {contacts.map(contact => (
-                    <div 
-                        key={contact.id}
-                        onClick={() => onSelectChat(contact)}
-                        style={{
-                            padding: '12px var(--spacing-sm)',
-                            borderRadius: '12px',
-                            marginBottom: '4px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            background: selectedChat?.id === contact.id ? 'var(--bubble-received)' : 'transparent',
-                            display: 'flex',
-                            gap: '12px',
-                            alignItems: 'center'
-                        }}
-                        onMouseEnter={(e) => {
-                            if (selectedChat?.id !== contact.id) {
-                                e.currentTarget.style.background = 'var(--bubble-received)';
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            if (selectedChat?.id !== contact.id) {
-                                e.currentTarget.style.background = 'transparent';
-                            }
-                        }}
-                    >
-                        <div style={{ position: 'relative' }}>
-                            <div style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '50%',
-                                background: 'var(--border-color)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'var(--text-secondary)',
-                                fontWeight: 500
-                            }}>
-                                {contact.avatar}
-                            </div>
-                            {contact.status === 'online' && (
-                                <div style={{
-                                    position: 'absolute',
-                                    bottom: '2px',
-                                    right: '2px',
-                                    width: '12px',
-                                    height: '12px',
-                                    borderRadius: '50%',
-                                    background: '#22c55e',
-                                    border: '2px solid var(--panel-bg)'
-                                }}></div>
-                            )}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--text-primary)' }}>{contact.name}</span>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{contact.time}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <p style={{ 
-                                    fontSize: '0.875rem', 
-                                    color: 'var(--text-secondary)', 
-                                    whiteSpace: 'nowrap', 
-                                    overflow: 'hidden', 
-                                    textOverflow: 'ellipsis',
-                                    flex: 1,
-                                    marginRight: '8px'
-                                }}>
-                                    {contact.lastMessage}
-                                </p>
-                                {contact.unread > 0 ? (
-                                    <div style={{
-                                        background: 'var(--accent-primary)',
-                                        color: 'white',
-                                        fontSize: '0.7rem',
-                                        fontWeight: 600,
-                                        width: '18px',
-                                        height: '18px',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        {contact.unread}
-                                    </div>
-                                ) : contact.name === 'Edwin Johnson' ? (
-                                    <div style={{ color: 'var(--accent-primary)', fontSize: '1rem', lineHeight: 1 }}>
-                                        ✓
-                                    </div>
-                                ) : (
-                                    <div style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1 }}>
-                                        ✓
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </aside>
+      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+        <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+        <h3 className="text-lg font-semibold">Discover users</h3>
+        <p className="text-sm">
+          Search users by email to start new conversations
+        </p>
+      </div>
     );
+  };
+
+  return (
+    <aside className="w-[380px] bg-white border-r flex flex-col dark:bg-gray-900">
+    
+      <div className="p-6 border-b">
+        <h2 className="text-2xl font-bold mb-4 dark:text-white">Messages</h2>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search users by email..."
+            className="w-full pl-10 py-3 rounded-xl border dark:bg-gray-800 dark:text-white"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      
+      <div className="flex-1 overflow-y-auto">{renderContent()}</div>
+    </aside>
+  );
 };
 
 export default MessageListPanel;
