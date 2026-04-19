@@ -216,24 +216,12 @@ const ChatLayout = ({ onLogout }) => {
     }
     const conversationId = String(selectedChat.id);
     console.log("[DEBUG] useEffect joining conversation:", conversationId);
-    setSocketJoinState({ conversationId, status: "joining", error: null });
 
-    socket.emit("join_conversation", conversationId, (ack) => {
-      console.log("[DEBUG] Join conversation ack:", ack);
-      setSocketJoinState((prev) => {
-        if (prev.conversationId !== conversationId) return prev;
-        if (ack?.ok) return { conversationId, status: "joined", error: null };
-        return {
-          conversationId,
-          status: "error",
-          error: ack?.error || "JOIN_FAILED",
-        };
-      });
-      if (ack?.ok) {
-        syncFromServer(conversationId);
-        flushPendingQueue(conversationId);
-      }
-    });
+    socket.emit("join_conversation", { conversationId });
+    setSocketJoinState({ conversationId, status: "joined", error: null });
+    syncFromServer(conversationId);
+    flushPendingQueue(conversationId);
+
     return () => {
       console.log("[DEBUG] Leaving conversation:", conversationId);
       socket.emit("leave_conversation", conversationId);

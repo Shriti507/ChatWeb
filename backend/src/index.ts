@@ -14,29 +14,41 @@ import {
   joinConversationForUser, 
 } from "./services/messageService.js";
 
-const presenceByConversation = new Map<string, Set<string>>();
-const conversationsBySocket = new Map<string, Set<string>>();
+const presenceByConversation = new Map();
+const conversationsBySocket = new Map();
 
 const app = express();
 const httpServer = createServer(app);
 
-// 1. Fixed CORS - Explicit origins are required for credentials mode
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+const CLIENT_URL = process.env.CLIENT_URL;
+
+
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin) return callback(null, true);
+
+    const allowed = [process.env.CLIENT_URL, "http://localhost:5173", "http://localhost:3000"];
+    if (allowed.includes(origin)) {
+      return callback(null, true);
     }
-  },
-  credentials: true
-}));
 
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+
+
+
+
+// socket.io
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: [CLIENT_URL || "", "http://localhost:5173", "http://localhost:3000"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -44,49 +56,124 @@ const io = new Server(httpServer, {
 
 app.use(express.json());
 
-// 2. Route Mounting
-app.use("/auth", authRoutes); // e.g. /auth/login
-app.use("/api", requireAuth, messageRoutes); // e.g. /api/users/me
+// Routes
+app.use("/auth", authRoutes);
+app.use("/api", requireAuth, messageRoutes);
 
-// Root check
+// Health check
 app.get("/", (req, res) => {
   res.send("Server is running!");
 });
 
-// Socket Auth Middleware
+// Socket auth
 io.use(async (socket, next) => {
   try {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("UNAUTHORIZED"));
+
     const payload = verifyAuthToken(token);
     socket.data.userId = payload.userId;
+
     next();
   } catch {
     next(new Error("UNAUTHORIZED"));
   }
 });
 
-// Socket Logic
+// Socket logic
 io.on("connection", (socket) => {
-  const userId = socket.data.userId as string;
-  
-  socket.on("join_conversation", async (conversationId, ack) => {
-    try {
-      await joinConversationForUser(conversationId, userId);
-      socket.join(conversationId);
-      const online = presenceByConversation.get(conversationId) ?? new Set();
-      online.add(userId);
-      presenceByConversation.set(conversationId, online);
-      socket.to(conversationId).emit("user_online", { conversationId, userId });
-      ack?.({ ok: true });
-    } catch (err) {
-      ack?.({ ok: false, error: "JOIN_FAILED" });
-    }
-  });
+  const userId = socket.data.userId;
 
-  socket.on("disconnect", () => {
-    // Handle presence cleanup logic here
-  });
+  // Join conversation room
+socket.on("join_conversation", ({ conversationId }) => {
+  socket.join(conversationId);
+
+  if (!presenceByConversation.has(conversationId)) {
+    presenceByConversation.set(conversationId, new Set());
+  }
+
+  presenceByConversation.get(conversationId).add(userId);
+
+  socket.to(conversationId).emit("user_online", { conversationId, userId });
+});
+
+
+// SEND MESSAGE
+socket.on("send_message", async (payload, ack) => {
+  try {
+    const { conversationId, text, clientMessageId } = payload;
+
+    const { message, duplicate } = await createDurableMessage({
+      conversationId,
+      userId,
+      content: text,
+      clientMessageId,
+    });
+
+    if (!duplicate) {
+      socket.to(conversationId).emit("receive_message", {
+        id: message.id,
+        conversationId: message.conversationId,
+        senderId: message.senderId,
+        text: message.content,
+        clientMessageId: message.clientMessageId,
+        createdAt: message.createdAt,
+      });
+    }
+
+    // VERY IMPORTANT → for IndexedDB sync
+    ack?.({ status: "stored", messageId: message.id, duplicate });
+
+  } catch (err) {
+    console.error(err);
+    ack?.({ status: "error", error: "MESSAGE_FAILED" });
+  }
+});
+
+
+// TYPING START
+socket.on("typing_start", ({ conversationId }) => {
+  socket.to(conversationId).emit("typing_start", { conversationId, userId });
+});
+
+
+// TYPING STOP
+socket.on("typing_stop", ({ conversationId }) => {
+  socket.to(conversationId).emit("typing_stop", { conversationId, userId });
+});
+
+
+// LEAVE ROOM
+socket.on("leave_conversation", (conversationId) => {
+  socket.leave(conversationId);
+
+  const users = presenceByConversation.get(conversationId);
+  if (users) {
+    users.delete(userId);
+
+    if (users.size === 0) {
+      presenceByConversation.delete(conversationId);
+    } else {
+      socket.to(conversationId).emit("user_offline", { conversationId, userId });
+    }
+  }
+});
+
+
+// DISCONNECT
+socket.on("disconnect", () => {
+  for (const [conversationId, users] of presenceByConversation.entries()) {
+    if (users.has(userId)) {
+      users.delete(userId);
+
+      if (users.size === 0) {
+        presenceByConversation.delete(conversationId);
+      } else {
+        io.to(conversationId).emit("user_offline", { conversationId, userId });
+      }
+    }
+  }
+});
 });
 
 const PORT = process.env.PORT || 8000;
