@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-const API_URL = "http://localhost:3000";
+import { API } from "../utils/api";
 
 const SignupPage = ({ onSignup, onGoToLogin }) => {
   const [name, setName] = useState("");
@@ -16,7 +16,7 @@ const SignupPage = ({ onSignup, onGoToLogin }) => {
     setError("");
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/auth/signup`, {
+      const response = await fetch(`${API}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),

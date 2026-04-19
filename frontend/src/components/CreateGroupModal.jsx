@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Users, Search, Check } from "lucide-react";
 import { authHeaders } from "../utils/session";
-
-const API_URL = "http://localhost:3000/api";
+import { API } from "../utils/api";
 
 const CreateGroupModal = ({ isOpen, onClose, onGroupCreated, currentUserId }) => {
   const [groupName, setGroupName] = useState("");
@@ -22,7 +21,7 @@ const CreateGroupModal = ({ isOpen, onClose, onGroupCreated, currentUserId }) =>
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/users`, {
+      const response = await fetch(`${API}/api/users`, {
         headers: authHeaders(),
       });
       if (response.ok) {
@@ -50,7 +49,7 @@ const CreateGroupModal = ({ isOpen, onClose, onGroupCreated, currentUserId }) =>
 
     setCreating(true);
     try {
-      const response = await fetch(`${API_URL}/conversations/group`, {
+      const response = await fetch(`${API}/api/conversations/group`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Phone, Video, MoreHorizontal, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { authHeaders } from "../utils/session";
-
-const API_URL = "http://localhost:3000/api";
+import { API } from "../utils/api";
 
 const ChatHeader = ({
   selectedChat,
@@ -29,7 +28,7 @@ const ChatHeader = ({
   const fetchMembers = async () => {
     try {
       const response = await fetch(
-        `${API_URL}/conversations/${selectedChat.id}/members`,
+        `${API}/api/conversations/${selectedChat.id}/members`,
         { headers: authHeaders() }
       );
       if (response.ok) {

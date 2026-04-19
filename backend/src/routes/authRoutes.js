@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { randomUUID } from "node:crypto";
 import { prisma } from "../lib/prisma.js";
 import { signAuthToken } from "../lib/jwt.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 const router = Router();
 const SALT_ROUNDS = 10;
 router.post("/signup", async (req, res) => {
@@ -10,7 +11,10 @@ router.post("/signup", async (req, res) => {
         const { name, email, password } = req.body;
         const normalizedEmail = email?.trim().toLowerCase();
         const normalizedName = name?.trim();
-        if (!normalizedName || !normalizedEmail || !password || password.length < 6) {
+        if (!normalizedName ||
+            !normalizedEmail ||
+            !password ||
+            password.length < 6) {
             return res.status(400).json({ error: "INVALID_SIGNUP_PAYLOAD" });
         }
         const existingUser = await prisma.user.findUnique({
@@ -64,6 +68,9 @@ router.post("/login", async (req, res) => {
     catch {
         return res.status(500).json({ error: "LOGIN_FAILED" });
     }
+});
+router.post("/logout", requireAuth, (req, res) => {
+    res.json({ success: true });
 });
 export default router;
 //# sourceMappingURL=authRoutes.js.map

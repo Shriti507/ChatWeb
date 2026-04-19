@@ -1,7 +1,7 @@
 import type { AuthedRequest } from "../middleware/authMiddleware.js";
 import type { Request, Response } from "express";
 import {
-  searchUsersByEmail,
+  searchUsersByUsername as searchUsersByEmail,
   getAllUsers,
   getOrCreateDMConversation,
   createGroupConversation,
@@ -18,17 +18,19 @@ import {
 
 export const searchUsers = async (req: AuthedRequest, res: Response) => {
   const userId = req.user?.id;
-  const email = (req.query.email as string)?.trim() || "";
+  const username = (req.query.username as string)?.trim() || "";
+  console.log("[DEBUG] searchUsers - userId:", userId, "username:", username);
 
   if (!userId) {
     return res.status(401).json({ error: "UNAUTHORIZED" });
   }
 
   try {
-    const users = await searchUsersByEmail(email, userId);
+    const users = await searchUsersByEmail(username, userId);
+    console.log("[DEBUG] searchUsers - found users:", users.length);
     res.json(users);
   } catch (err) {
-    console.error("Search users error:", err);
+    console.error("[DEBUG] Search users error:", err);
     res.status(500).json({ error: "SEARCH_FAILED" });
   }
 };
@@ -53,20 +55,23 @@ export const createDMConversationHandler = async (
   res: Response
 ) => {
   const userId = req.user?.id;
+  console.log("[DEBUG] createDMConversationHandler - userId:", userId);
   if (!userId) {
     return res.status(401).json({ error: "UNAUTHORIZED" });
   }
 
   const { targetUserId } = req.body;
+  console.log("[DEBUG] createDMConversationHandler - targetUserId:", targetUserId);
   if (!targetUserId) {
     return res.status(400).json({ error: "MISSING_TARGET_USER_ID" });
   }
 
   try {
     const conversation = await getOrCreateDMConversation(userId, targetUserId);
+    console.log("[DEBUG] createDMConversationHandler - conversation created:", conversation);
     res.json(conversation);
   } catch (err) {
-    console.error("Create DM conversation error:", err);
+    console.error("[DEBUG] Create DM conversation error:", err);
     res.status(400).json({ error: (err as Error).message || "DM_CONVERSATION_FAILED" });
   }
 };
