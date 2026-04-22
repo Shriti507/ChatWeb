@@ -2,13 +2,15 @@ import React from "react";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
+import "../styles/ChatApp.css";
 
-const ChatArea = ({
+const ChatWindow = ({
   selectedChat,
   messages,
   onMessageSent,
   onMessageStatusChange,
   currentUserId,
+//   isSyncing,
   onlineCount,
   isOtherTyping,
   socketJoinReady,
@@ -17,8 +19,7 @@ const ChatArea = ({
   onCreatePublicConversation,
 }) => {
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 shadow-2xl">
-      {/* Header */}
+    <div className="chat-window">
       <ChatHeader
         selectedChat={selectedChat}
         onlineCount={onlineCount}
@@ -29,10 +30,8 @@ const ChatArea = ({
         currentUserId={currentUserId}
       />
 
-      {/* Messages */}
-      <MessageList messages={messages} />
+      <MessageList messages={messages} selectedChat={selectedChat} />
 
-      {/* Input */}
       <MessageInput
         selectedChat={selectedChat}
         currentUserId={currentUserId}
@@ -44,4 +43,4 @@ const ChatArea = ({
   );
 };
 
-export default ChatArea;
+export default ChatWindow;
